@@ -1,9 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './DTO/create-user.dto';
 import { UpdateUserDto } from './DTO/update-user.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { User } from 'src/schemas/user.schema';
 
 @Injectable()
 export class UsersService {
+
+    constructor(
+        @InjectModel(User.name)
+        private readonly userModel: Model<User>
+    ) { }
 
     private users = [
         {
@@ -33,45 +41,39 @@ export class UsersService {
     ]
 
 
-    findAll(role?: "ADMIN" | "ENGINEER" | "MANAGER") {
+    async findAll(role?: "ADMIN" | "ENGINEER" | "MANAGER") {
         if (role) {
-            const userByRole = this.users.filter(user => user.role == role)
-            if (userByRole.length === 0) throw new NotFoundException("wrong role")
-            return userByRole
+            const users = await this.userModel.find({ role })
+            if (users.length === 0)
+                throw new HttpException("wrong role", 400)
         }
-
-        return this.users
+        const users = await this.userModel.find()
+        return users
     }
 
-    findOne(id: number) {
-        const user = this.users.find(user => user.id == id)
+    async findOne(id: string) {
+        const user = await this.userModel.findById(id)
         if (!user)
             throw new NotFoundException("there is no user with the specific id")
         return user
     }
 
     create(user: CreateUserDto) {
-        const id = this.users.length + 1
-        const newUser = { id, ...user }
-        this.users.push(newUser)
-        return newUser
+        const newUser = new this.userModel(user)
+        return newUser.save()
     }
 
-    update(id: number, user: UpdateUserDto) {
-        this.users = this.users.map(u =>
-            u.id == id ? { ...u, ...user, } : u
-        )
-        const updatedUser = this.users.find(user => user.id == id)
+    async update(id: string, user: UpdateUserDto) {
+        const updatedUser = await this.userModel.findByIdAndUpdate(id, user, { new: true })
         if (!updatedUser)
             throw new NotFoundException("there is no user with the specific id")
         return updatedUser
     }
 
-    delete(id: number) {
-        const deletedUser = this.users.find(u => u.id == id)
+    async delete(id: string) {
+        const deletedUser = await this.userModel.findByIdAndDelete(id)
         if (!deletedUser)
             throw new NotFoundException("there is no user with the specific id")
-        this.users = this.users.filter(user => user.id != id)
         return deletedUser
     }
 

@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Put, Query, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpException, NotFoundException, Param, ParseIntPipe, Post, Put, Query, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './DTO/create-user.dto';
 import { UpdateUserDto } from './DTO/update-user.dto';
+import mongoose from 'mongoose';
 
 @Controller('users') // /users
 export class UsersController {
@@ -21,7 +22,10 @@ export class UsersController {
     }
 
     @Get("/:id") // GET /users/:id
-    findOne(@Param("id", ParseIntPipe) id: number) {
+    findOne(@Param("id") id: string) {
+        const isValidId = mongoose.Types.ObjectId.isValid(id)
+        if (!isValidId)
+            throw new NotFoundException("there is no user with the specific id")
         return this.userService.findOne(id)
     }
 
@@ -32,14 +36,20 @@ export class UsersController {
 
     @Put("/:id") // PUT /users/:id
     update(
-        @Param("id", ParseIntPipe) id: number,
+        @Param("id") id: string,
         @Body(ValidationPipe) user: UpdateUserDto
     ) {
+        const isValidId = mongoose.Types.ObjectId.isValid(id)
+        if (!isValidId)
+            throw new NotFoundException("there is no user with the specific id")
         return this.userService.update(id, user)
     }
 
     @Delete("/:id") // DELETE /users/:id
-    delete(@Param("id", ParseIntPipe) id: number) {
+    delete(@Param("id") id: string) {
+        const isValidId = mongoose.Types.ObjectId.isValid(id)
+        if (!isValidId)
+            throw new NotFoundException("there is no user with the specific id")
         return this.userService.delete(id)
     }
 
