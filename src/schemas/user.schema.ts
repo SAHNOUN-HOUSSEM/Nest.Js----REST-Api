@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import mongoose from "mongoose";
 import { UserSettings } from "./userSettings.schema";
+import { Post } from "./post.schema";
 
 @Schema()
 export class User {
@@ -25,6 +26,14 @@ export class User {
         ref: UserSettings.name
     })
     userSettings: UserSettings
+
+    @Prop({
+        type: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: Post.name
+        }]
+    })
+    posts: Post[]
 }
 
 export const UserSchema = SchemaFactory.createForClass(User)
