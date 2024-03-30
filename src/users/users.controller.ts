@@ -1,8 +1,9 @@
-import { Body, Controller, Delete, Get, HttpException, NotFoundException, Param, ParseIntPipe, Post, Put, Query, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Put, Query, UsePipes, ValidationPipe } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './DTO/create-user.dto';
 import { UpdateUserDto } from './DTO/update-user.dto';
 import mongoose from 'mongoose';
+import { CreateUserSettingsDto } from './DTO/create-userSettings.dto';
 
 @Controller('users') // /users
 export class UsersController {
@@ -51,6 +52,19 @@ export class UsersController {
         if (!isValidId)
             throw new NotFoundException("there is no user with the specific id")
         return this.userService.delete(id)
+    }
+
+    // setUserSettings : PATCH /users/:userId/userSettigns
+    @Patch("/:userId/userSettigns")
+    @UsePipes(ValidationPipe)
+    setUserSettings(
+        @Param("userId") userId: string,
+        @Body() createUserSettingsDto: CreateUserSettingsDto
+    ) {
+        const isValidId = mongoose.Types.ObjectId.isValid(userId)
+        if (!isValidId)
+            throw new NotFoundException("there is no user with the specific id")
+        return this.userService.setUserSettings(userId, createUserSettingsDto)
     }
 
 }

@@ -1,4 +1,6 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, ValidateNested } from "class-validator";
+import { CreateUserSettingsDto } from "./create-userSettings.dto";
+import { Type } from "class-transformer";
 
 export class CreateUserDto {
     @IsString()
@@ -12,4 +14,9 @@ export class CreateUserDto {
         message: "you must enter a valid role"
     })
     role: "ADMIN" | "ENGINEER" | "MANAGER"
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => CreateUserSettingsDto)
+    userSettings?: CreateUserSettingsDto
 }
